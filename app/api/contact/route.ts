@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = new Resend(process.env.RESEND_API_KEY);
 const TO = process.env.CONTACT_TO || "chaibisketllc@gmail.com";
 const CC = process.env.CONTACT_CC || "";
 const SHEETS_WEBHOOK_URL = process.env.SHEETS_WEBHOOK_URL || "";
@@ -21,14 +21,13 @@ export async function POST(req: Request) {
     }
 
     // 1) Email
-    if (resend) {
-      await resend.emails.send({
-        from: FROM,
-        to: [TO],
-        ...(CC ? { cc: [CC] } : {}),
-        subject: SUBJECT,
-        reply_to: email,
-        text: `
+    await resend.emails.send({
+      from: FROM,
+      to: [TO],
+      ...(CC ? { cc: [CC] } : {}),
+      subject: SUBJECT,
+      reply_to: email,
+      text: `
 New message from the Chai Bisket site
 
 Name: ${name}
@@ -37,9 +36,8 @@ Phone: ${phone}
 
 Message:
 ${message}
-        `.trim(),
-      });
-    }
+      `.trim(),
+    });
 
     // 2) Google Sheet (optional)
     if (SHEETS_WEBHOOK_URL) {
